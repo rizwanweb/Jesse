@@ -1,6 +1,10 @@
 from bs4 import BeautifulSoup
 import requests
 import csv
+import db
+import mariadb
+from time import sleep
+
 
 MAIN_URL = 'https://www.fatsecret.com'
 
@@ -21,23 +25,28 @@ for main_category in main_food_table.find_all('a'):
     print('*'*20)
     print(title.text)
     print('*'*20)
-    with open('Main-Category.csv', 'a', newline='') as f:
-        writer = csv.writer(f)
-        data = [title.text.strip()]
-        writer.writerow(data)
-        print(f"{title.text.strip()} added to Main Category Table")
-
+    # with open('Main-Category.csv', 'a', newline='') as f:
+    #     writer = csv.writer(f)
+    #     data = [title.text.strip()]
+    #     writer.writerow(data)
+    #     print(f"{title.text.strip()} added to Main Category Table")
+    data = (title.text.strip())
+    db.insertCategory(data)
+    CategoryID = db.getCategoryID()
     sub_category_table = mc_soup.find("div", class_="secHolder")
 
     for sub_category in sub_category_table.find_all("a"):
         ele = sub_category.find_parent()  # Get names of sub category
         if ele.name == 'h2':
             #print("     " + sub_category.text)
-            with open('Sub-Category.csv', 'a', newline='') as f:
-                writer = csv.writer(f)
-                data = [sub_category.text, title.text]
-                writer.writerow(data)
-                print(f"{sub_category.text} added to Sub-Category Table")
+            # with open('Sub-Category.csv', 'a', newline='') as f:
+            #     writer = csv.writer(f)
+            #     data = [sub_category.text, title.text]
+            #     writer.writerow(data)
+            #     print(f"{sub_category.text} added to Sub-Category Table")
+            data = (sub_category.text, CategoryID)
+            SubCategoryID = db.getSubCategoryID()
+    
         elif ele.name == 'div':  # Get names and URL of food items
             food_name = sub_category.text
             with open('foods.csv', 'a', newline='') as f:
@@ -104,6 +113,7 @@ for main_category in main_food_table.find_all('a'):
                             va_value = ""
                             vc_weigt = ""
                             vc_value = ""
+                            transfat = ""
 
                             index = 0
                             with open('nutrition.csv', 'a', newline='') as f:
@@ -125,6 +135,8 @@ for main_category in main_food_table.find_all('a'):
                                             sf_weight = div.text.strip()
                                         if index == 6:
                                             sf_value = div.text.strip()
+                                        if index == 8:
+                                            transfat = div.text.strip()
                                         if index == 10:
                                             pf_weight = div.text.strip()
                                         # if index == 10:
